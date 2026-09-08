@@ -1,6 +1,11 @@
+import logging
+
 import numpy as np
 
-from handwriting.training.augmentation import augment_strokes
+from handwriting.training.augmentation import (
+    augment_strokes,
+    augment_training_data,
+)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #TEST SAMPLES
@@ -234,3 +239,22 @@ def test_augment_strokes_changes_drawing_coordinates():
         result[drawing_mask, :2],
         strokes[drawing_mask, :2]
     )
+
+
+def test_augment_training_data_logs_copy_progress(caplog):
+    images = np.zeros((1, 64, 64, 1), dtype=np.float32)
+    strokes = np.zeros((1, 100, 6), dtype=np.float32)
+    labels = np.array([0])
+
+    with caplog.at_level(
+        logging.INFO,
+        logger="handwriting.training.augmentation",
+    ):
+        augment_training_data(
+            X_train_images=images,
+            X_train_strokes=strokes,
+            y_train=labels,
+            copies_per_sample=1,
+        )
+
+    assert "Creating augmented copy 1/1" in caplog.text

@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 from PIL import Image
 
@@ -15,6 +17,7 @@ SCALE_MAX = 1.10
 SHIFT_MIN = -4
 SHIFT_MAX = 4
 
+logger = logging.getLogger(__name__)
 
 #~~~~~~~~~~~~~~~~~~~~~
 #Shift image without wrapping around edges
@@ -309,7 +312,11 @@ def augment_training_data(
     #--------------------
     #augmentation of training set
     for copy_index in range(copies_per_sample):
-        print(f'Creating augmented copy {copy_index + 1}/{copies_per_sample}')
+        logger.info(
+            "Creating augmented copy %d/%d",
+            copy_index + 1,
+            copies_per_sample,
+        )
 
         for image, strokes, label in zip(X_train_images, X_train_strokes, y_train):
             aug_image, aug_strokes = augment_pair(image, strokes)

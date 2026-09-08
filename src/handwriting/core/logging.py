@@ -12,6 +12,9 @@ class JsonFormatter(logging.Formatter):
             "message": record.getMessage(),
         }
 
+        if record.exc_info is not None:
+            log_data["exception"] = self.formatException(record.exc_info)
+
         return json.dumps(log_data)
 
 
