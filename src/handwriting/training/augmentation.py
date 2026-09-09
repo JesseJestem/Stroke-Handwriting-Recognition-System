@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 from PIL import Image
 
@@ -15,6 +17,7 @@ SCALE_MAX = 1.10
 SHIFT_MIN = -4
 SHIFT_MAX = 4
 
+logger = logging.getLogger(__name__)
 
 #~~~~~~~~~~~~~~~~~~~~~
 #Shift image without wrapping around edges
@@ -309,7 +312,11 @@ def augment_training_data(
     #--------------------
     #augmentation of training set
     for copy_index in range(copies_per_sample):
-        print(f'Creating augmented copy {copy_index + 1}/{copies_per_sample}')
+        logger.info(
+            "Creating augmented copy %d/%d",
+            copy_index + 1,
+            copies_per_sample,
+        )
 
         for image, strokes, label in zip(X_train_images, X_train_strokes, y_train):
             aug_image, aug_strokes = augment_pair(image, strokes)
@@ -341,60 +348,3 @@ def augment_training_data(
     y_train_aug = y_train_aug[indices]
 
     return X_train_images_aug, X_train_strokes_aug, y_train_aug
-
-#~~~~~~~~~~~~~~~~~~~~~
-#TEST BLOCK
-#~~~~~~~~~~~~~~~~~~~~~
-
-if __name__ == "__main__":
-    from pathlib import Path
-
-    import matplotlib.pyplot as plt
-
-    BASE_DIR = Path(__file__).resolve().parents[2]
-    DATASET_PATH = BASE_DIR / "data" / "processed" / "dataset.npz"
-
-    data = np.load(DATASET_PATH, allow_pickle=True)
-
-    X_images = data["X_images"]
-    X_strokes = data["X_strokes"]
-    y = data["y"]
-    display_labels = data["display_labels"]
-
-    index = 650
-
-    image = X_images[index]
-    strokes = X_strokes[index]
-    label = display_labels[y[index]]
-
-    aug_image, aug_strokes = augment_pair(image, strokes)
-
-    plt.figure()
-    plt.title(f"Original image: {label}")
-    plt.imshow(image.squeeze(), cmap="gray")
-    plt.axis("off")
-    plt.show()
-
-    plt.figure()
-    plt.title(f"Augmented image: {label}")
-    plt.imshow(aug_image.squeeze(), cmap="gray")
-    plt.axis("off")
-    plt.show()
-
-    plt.figure()
-    plt.title("Original strokes")
-    drawing = strokes[strokes[:, 4] >= 0.5]
-    plt.scatter(drawing[:, 0], drawing[:, 1], s=10)
-    plt.xlim(0, 1)
-    plt.ylim(1, 0)
-    plt.grid(True)
-    plt.show()
-
-    plt.figure()
-    plt.title("Augmented strokes")
-    drawing = aug_strokes[aug_strokes[:, 4] >= 0.5]
-    plt.scatter(drawing[:, 0], drawing[:, 1], s=10)
-    plt.xlim(0, 1)
-    plt.ylim(1, 0)
-    plt.grid(True)
-    plt.show()

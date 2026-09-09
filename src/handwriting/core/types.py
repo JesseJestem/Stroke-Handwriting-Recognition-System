@@ -5,6 +5,7 @@ from numpy.typing import NDArray
 
 FloatArray: TypeAlias = NDArray[np.float32]
 IntArray: TypeAlias = NDArray[np.int32]
+StrokeArray: TypeAlias = NDArray[np.float32]
 
 class StrokePoint(TypedDict):
     x: float

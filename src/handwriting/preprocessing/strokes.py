@@ -4,7 +4,8 @@ from typing import cast
 
 import numpy as np
 
-from handwriting.core.types import FloatArray, IntArray, StrokeData
+from handwriting.core.exceptions import StrokeDataError
+from handwriting.core.types import IntArray, StrokeArray, StrokeData
 
 #~~~~~~~~~~~~~~~~~~
 #Load stroke JSON -> dict
@@ -13,8 +14,19 @@ from handwriting.core.types import FloatArray, IntArray, StrokeData
 def load_stroke_json(stroke_path: str | Path) -> StrokeData:
     stroke_path = Path(stroke_path)
 
-    with open(stroke_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    try:
+        with open(stroke_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+    except FileNotFoundError as exc:
+        raise StrokeDataError(
+            f"Stroke file not found: {stroke_path}"
+        ) from exc
+
+    except json.JSONDecodeError as exc:
+        raise StrokeDataError(
+            f"Invalid stroke JSON: {stroke_path}"
+        ) from exc
 
     return cast(StrokeData, data)
 
@@ -22,7 +34,7 @@ def load_stroke_json(stroke_path: str | Path) -> StrokeData:
 #Normalized strokes in range 0-1 in formate [num_points, 6]
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def normalize_strokes (data: StrokeData) -> FloatArray:
+def normalize_strokes (data: StrokeData) -> StrokeArray:
 
     strokes = data.get("strokes", []) #if not - empty list
     
@@ -141,7 +153,7 @@ def normalize_strokes (data: StrokeData) -> FloatArray:
 #Split sequence separate strokes
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def split_strokes(strokes: FloatArray) -> list[FloatArray]:
+def split_strokes(strokes: StrokeArray) -> list[StrokeArray]:
 
     segments = []
     current_segment = []
@@ -168,7 +180,7 @@ def split_strokes(strokes: FloatArray) -> list[FloatArray]:
 #~~~~~~~~~~~~~~~~~~~~~~~~
 
 #check lenght to set propotrion if every stroke in range 0~100
-def stroke_length(stroke: FloatArray) -> float:
+def stroke_length(stroke: StrokeArray) -> float:
 
     #if only one point = 1
     if len(stroke) < 2:
@@ -190,9 +202,9 @@ def stroke_length(stroke: FloatArray) -> float:
 #~~~~~~~~~~~~~~~~~~~
 
 def resample_single_stroke(
-        stroke: FloatArray,
+        stroke: StrokeArray,
         target_points: int,
-) -> FloatArray:
+) -> StrokeArray:
 
     #--------------------
     #if 0 target -> zeros
@@ -293,7 +305,7 @@ def resample_single_stroke(
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def distribute_points_between_strokes(
-        segments: list[FloatArray],
+        segments: list[StrokeArray],
         max_points: int,
         separator_points_per_gap: int = 2,
 ) -> tuple[IntArray, int]:
@@ -357,9 +369,9 @@ def distribute_points_between_strokes(
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def resample_strokes(
-        strokes: FloatArray,
+        strokes: StrokeArray,
         max_points: int = 100,
-) -> FloatArray:
+) -> StrokeArray:
 
     #-------------------------
     #if no points return zeros (100, 6)
@@ -447,33 +459,10 @@ def resample_strokes(
 def preprocess_strokes(
         stroke_path: str | Path,
         max_points: int = 100,
-) -> FloatArray:
+) -> StrokeArray:
 
     data = load_stroke_json(stroke_path)
     normalized = normalize_strokes(data)
     resampled = resample_strokes(normalized, max_points=max_points)
 
     return resampled
-
-#~~~~~~~~~
-#Test code
-#~~~~~~~~~
-
-if __name__ == "__main__":
-    test_path = Path("data/raw/strokes/upper_A")
-
-    if test_path.exists():
-        json_files = list(test_path.glob("*.json"))
-
-        if len(json_files) == 0:
-            print("No JSON files found in:", test_path)
-        else:
-            first_json = json_files[0]
-            processed = preprocess_strokes(first_json)
-
-            print("File:", first_json)
-            print("Processed strokes shape:", processed.shape)
-            print("Min:", processed.min())
-            print("Max:", processed.max())
-            print("Pen down points:", processed[:, 4].sum())
-            print("Stroke starts:", processed[:, 5].sum())

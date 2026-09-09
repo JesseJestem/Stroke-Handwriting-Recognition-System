@@ -1,7 +1,10 @@
 import numpy as np
+import pytest
 
+from handwriting.core.exceptions import StrokeDataError
 from handwriting.preprocessing.strokes import (
     distribute_points_between_strokes,
+    load_stroke_json,
     normalize_strokes,
     resample_single_stroke,
     resample_strokes,
@@ -266,8 +269,8 @@ def test_distribute_points_handles_zero_remaining_points():
 
     segments = [segment_1, segment_2]
     points_per_segment, separator_points = distribute_points_between_strokes(
-        segments = segments,
-        max_points = 4,
+        segments=segments,
+        max_points=4,
         separator_points_per_gap=2,
     )
 
@@ -276,3 +279,43 @@ def test_distribute_points_handles_zero_remaining_points():
         [1, 1]
     )
     assert separator_points == 2
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#13 Load stroke JSON rises stroke data error for missing file
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def test_load_stroke_json_raises_stroke_data_error_for_missing_file(tmp_path):
+    missing_file = tmp_path / 'missing_file.json'
+
+    with pytest.raises(StrokeDataError):
+        load_stroke_json(missing_file)
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#14 Load stroke JSON rises stroke data error for invalid file
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def test_load_stroke_json_raises_stroke_data_error_for_invalid_json(tmp_path):
+    invalid_file = tmp_path / 'invalid_file.json'
+
+    invalid_file.write_text(
+        "invalid_file.json",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(StrokeDataError):
+        load_stroke_json(invalid_file)
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#15 Load stroke JSON returns stroke data
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def test_load_stroke_json_returns_stroke_data(tmp_path):
+    stroke_file = tmp_path / "stroke.json"
+
+    stroke_file.write_text(
+        '{"strokes": [{"x": 1, "y": 2, "t": 3}]}',
+        encoding="utf-8",
+    )
+
+    result = load_stroke_json(stroke_file)
+    assert result["strokes"][0]["x"] == 1

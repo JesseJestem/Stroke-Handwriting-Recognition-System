@@ -248,14 +248,14 @@ Pointer Events API
 
 ## Stage 2 — Core Architecture
 
-* [ ] Add centralized configuration
-* [ ] Add domain types
-* [ ] Add domain exceptions
-* [ ] Add structured logging
-* [ ] Replace development `print()` calls
-* [ ] Add training configuration
-* [ ] Add request IDs
-* [ ] Normalize project paths
+* [x] Centralize project paths
+* [x] Add centralized application configuration
+* [x] Audit and extend domain types
+* [x] Add domain exceptions
+* [x] Add training configuration
+* [x] Add structured logging infrastructure
+* [x] Replace development print() calls
+* [x] Add request IDs
 
 **Result:** shared application infrastructure.
 

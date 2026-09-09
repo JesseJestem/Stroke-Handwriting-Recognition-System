@@ -1,19 +1,41 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware #for different servers
-from pydantic import BaseModel #create model of request
-from pathlib import Path #convinient file pass
-from datetime import datetime #create unique name based on time
-from fastapi import HTTPException #send to frontend HTTP error answer
-import tempfile #temp files saving
-import traceback #display full error in backend console
 import base64
 import json
+import logging
+import tempfile
+from datetime import datetime
+from pathlib import Path
+from uuid import uuid4
+
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+from handwriting.core.config import AppConfig
+from handwriting.core.logging import configure_logging
+from handwriting.legacy.predictor import predict_from_files
+from handwriting.core.request_context import request_context
+
+
+configure_logging()
+logger = logging.getLogger("handwriting.api")
 
 app = FastAPI()
 
+config = AppConfig()
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#Middleweare - allow to send request to backend
+#Middleware - allow to send request to backend
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+@app.middleware("http")
+async def add_request_id(request: Request, call_next):
+    request_id = uuid4().hex
+
+    with request_context(request_id):
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+
+    return response
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,15 +50,11 @@ app.add_middleware(
 #~~~~~~~~~~~~~~~~~~~~~~
 
 #Sample saving path
-BASE_DIR = Path(__file__).resolve().parents[2] #take absolute file path from 2 lvl above (project folder)
-IMAGE_DIR = BASE_DIR / "data" / "raw" / "images" #save images in data/raw/images/A/1image.png
-STROKE_DIR = BASE_DIR / "data" / "raw" / "strokes" #save strokes in data/raw/strokes/A/1stroke.png
+IMAGE_DIR = config.raw_data_dir / "images" #save images in data/raw/images/A/1image.png
+STROKE_DIR = config.raw_data_dir / "strokes" #save strokes in data/raw/strokes/A/1stroke.png
 #create folder if not exist
 IMAGE_DIR.mkdir(parents=True, exist_ok=True)
 STROKE_DIR.mkdir(parents=True, exist_ok=True)
-
-#import prediction function
-from handwriting.legacy.predictor import predict_from_files
 
 #temp files for prediction (outside)
 TEMP_DIR = Path(tempfile.gettempdir()) / "hybrid_handwriting_temp"
@@ -187,9 +205,9 @@ def prediction_sample(sample: PredictRequest):
     
     #display error on console logs
     except Exception as e:
-        print("Prediction error:")
-        print(traceback.format_exc()) #full info
-        raise HTTPException(status_code=500, detail=str(e)) #500-server error to frontend + details in JSON- "detail": "Model not found: saved_models/hybrid_letters.keras"
+        logger.exception("Prediction failed")
+        #500-server error to frontend + details in JSON- "detail": "Model not found: saved_models/hybrid_letters.keras"
+        raise HTTPException(status_code=500, detail=str(e))
     
     #delete temp files after prediction
     finally:
