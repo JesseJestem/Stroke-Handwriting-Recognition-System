@@ -4,13 +4,15 @@ import logging
 import tempfile
 from datetime import datetime
 from pathlib import Path
+from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from handwriting.core.logging import configure_logging
 from handwriting.legacy.predictor import predict_from_files
+from handwriting.core.request_context import request_context
 
 
 configure_logging()
@@ -21,6 +23,16 @@ app = FastAPI()
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Middleware - allow to send request to backend
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+@app.middleware("http")
+async def add_request_id(request: Request, call_next):
+    request_id = uuid4().hex
+
+    with request_context(request_id):
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+
+    return response
 
 app.add_middleware(
     CORSMiddleware,
