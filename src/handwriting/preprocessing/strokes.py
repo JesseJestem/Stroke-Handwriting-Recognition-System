@@ -466,26 +466,3 @@ def preprocess_strokes(
     resampled = resample_strokes(normalized, max_points=max_points)
 
     return resampled
-
-#~~~~~~~~~
-#Test code
-#~~~~~~~~~
-
-if __name__ == "__main__":
-    test_path = Path("data/raw/strokes/upper_A")
-
-    if test_path.exists():
-        json_files = list(test_path.glob("*.json"))
-
-        if len(json_files) == 0:
-            print("No JSON files found in:", test_path)
-        else:
-            first_json = json_files[0]
-            processed = preprocess_strokes(first_json)
-
-            print("File:", first_json)
-            print("Processed strokes shape:", processed.shape)
-            print("Min:", processed.min())
-            print("Max:", processed.max())
-            print("Pen down points:", processed[:, 4].sum())
-            print("Stroke starts:", processed[:, 5].sum())

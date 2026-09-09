@@ -10,6 +10,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from handwriting.core.config import AppConfig
 from handwriting.core.logging import configure_logging
 from handwriting.legacy.predictor import predict_from_files
 from handwriting.core.request_context import request_context
@@ -19,6 +20,8 @@ configure_logging()
 logger = logging.getLogger("handwriting.api")
 
 app = FastAPI()
+
+config = AppConfig()
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Middleware - allow to send request to backend
@@ -47,9 +50,8 @@ app.add_middleware(
 #~~~~~~~~~~~~~~~~~~~~~~
 
 #Sample saving path
-BASE_DIR = Path(__file__).resolve().parents[2] #take absolute file path from 2 lvl above (project folder)
-IMAGE_DIR = BASE_DIR / "data" / "raw" / "images" #save images in data/raw/images/A/1image.png
-STROKE_DIR = BASE_DIR / "data" / "raw" / "strokes" #save strokes in data/raw/strokes/A/1stroke.png
+IMAGE_DIR = config.raw_data_dir / "images" #save images in data/raw/images/A/1image.png
+STROKE_DIR = config.raw_data_dir / "strokes" #save strokes in data/raw/strokes/A/1stroke.png
 #create folder if not exist
 IMAGE_DIR.mkdir(parents=True, exist_ok=True)
 STROKE_DIR.mkdir(parents=True, exist_ok=True)
