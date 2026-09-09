@@ -3,6 +3,7 @@ import logging
 import sys
 
 from handwriting.core.logging import JsonFormatter, configure_logging
+from handwriting.core.request_context import request_context
 
 
 def test_json_formatter_returns_structured_log():
@@ -60,3 +61,42 @@ def test_json_formatter_includes_exception_details():
     assert "exception" in data
     assert "ValueError" in data["exception"]
     assert "test error" in data["exception"]
+
+
+def test_json_formatter_includes_request_id():
+    record = logging.LogRecord(
+        name="handwriting.api",
+        level=logging.INFO,
+        pathname=__file__,
+        lineno=10,
+        msg="Request processed",
+        args=(),
+        exc_info=None,
+    )
+
+    formatter = JsonFormatter()
+
+    with request_context("request_123"):
+        formatted_log = formatter.format(record)
+
+    data = json.loads(formatted_log)
+
+    assert data["request_id"] == "request_123"
+
+
+def test_json_formatter_omits_request_id_without_context():
+    record = logging.LogRecord(
+        name="handwriting.test",
+        level=logging.INFO,
+        pathname=__file__,
+        lineno=10,
+        msg="Test message",
+        args=(),
+        exc_info=None,
+    )
+
+    formatter = JsonFormatter()
+
+    data = json.loads(formatter.format(record))
+
+    assert "request_id" not in data
