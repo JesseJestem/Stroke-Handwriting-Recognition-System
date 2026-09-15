@@ -456,13 +456,19 @@ def resample_strokes(
 #Main pipeline: json -> load data -> norm -> split by strokes -> resample -> complete
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def preprocess_strokes(
-        stroke_path: str | Path,
-        max_points: int = 100,
+def preprocess_stroke_data(
+    data: StrokeData,
+    max_points: int = 100,
 ) -> StrokeArray:
-
-    data = load_stroke_json(stroke_path)
     normalized = normalize_strokes(data)
-    resampled = resample_strokes(normalized, max_points=max_points)
 
-    return resampled
+    return resample_strokes(normalized, max_points=max_points)
+
+
+def preprocess_strokes(
+    stroke_path: str | Path,
+    max_points: int = 100,
+) -> StrokeArray:
+    data = load_stroke_json(stroke_path)
+
+    return preprocess_stroke_data(data, max_points=max_points)

@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 import pytest
 
@@ -6,6 +8,8 @@ from handwriting.preprocessing.strokes import (
     distribute_points_between_strokes,
     load_stroke_json,
     normalize_strokes,
+    preprocess_stroke_data,
+    preprocess_strokes,
     resample_single_stroke,
     resample_strokes,
     split_strokes,
@@ -319,3 +323,40 @@ def test_load_stroke_json_returns_stroke_data(tmp_path):
 
     result = load_stroke_json(stroke_file)
     assert result["strokes"][0]["x"] == 1
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#16 Preprocess stroke data returns expected shape
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def test_preprocess_stroke_data_returns_expected_shape():
+    result = preprocess_stroke_data(
+        data,
+        max_points=50,
+    )
+
+    assert result.shape == (50, 6)
+    assert result.dtype == np.float32
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#17 Preprocess stroke data == preprocess strokes
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def test_preprocess_strokes_matches_preprocess_stroke_data(tmp_path):
+    stroke_file = tmp_path / "stroke.json"
+
+    stroke_file.write_text(
+        json.dumps(data),
+        encoding="utf-8",
+    )
+
+    from_file = preprocess_strokes(
+        stroke_file,
+        max_points=50,
+    )
+
+    from_data = preprocess_stroke_data(
+        data,
+        max_points=50,
+    )
+
+    np.testing.assert_allclose(from_file, from_data)
