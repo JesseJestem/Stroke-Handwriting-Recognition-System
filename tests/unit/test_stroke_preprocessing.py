@@ -9,6 +9,7 @@ from handwriting.preprocessing.strokes import (
     load_stroke_json,
     normalize_coordinates,
     normalize_strokes,
+    normalize_time,
     preprocess_stroke_data,
     preprocess_strokes,
     resample_single_stroke,
@@ -387,4 +388,35 @@ def test_normalize_coordinates_centers_shorter_height():
     np.testing.assert_allclose(
         y_norm,
         np.array([0.25, 0.75], dtype=np.float32),
+    )
+
+def test_normalize_time_scales_values_to_zero_one():
+    t_values = np.array(
+        [10.0, 20.0, 30.0],
+        dtype=np.float32,
+    )
+
+    t_norm = normalize_time(
+        t_values,
+    )
+
+    np.testing.assert_allclose(
+        t_norm,
+        np.array([0.0, 0.5, 1.0], dtype=np.float32),
+    )
+
+
+def test_normalize_time_returns_zeros_for_constant_values():
+    t_values = np.array(
+        [5.0, 5.0, 5.0],
+        dtype=np.float32,
+    )
+
+    t_norm = normalize_time(
+        t_values,
+    )
+
+    np.testing.assert_array_equal(
+        t_norm,
+        np.array([0.0, 0.0, 0.0], dtype=np.float32),
     )
