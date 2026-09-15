@@ -5,7 +5,7 @@ from typing import cast
 import numpy as np
 
 from handwriting.core.exceptions import StrokeDataError
-from handwriting.core.types import IntArray, StrokeArray, StrokeData
+from handwriting.core.types import FloatArray, IntArray, StrokeArray, StrokeData
 
 #~~~~~~~~~~~~~~~~~~
 #Load stroke JSON -> dict
@@ -30,11 +30,52 @@ def load_stroke_json(stroke_path: str | Path) -> StrokeData:
 
     return cast(StrokeData, data)
 
+#~~~~~~~~~~~~~~~~~~~~
+#Normalize coordinate
+#~~~~~~~~~~~~~~~~~~~~
+
+def normalize_coordinates(
+    x_values: FloatArray,
+    y_values: FloatArray,
+) -> tuple[FloatArray, FloatArray]:
+
+    #take borders of letter
+    x_min, x_max = x_values.min(), x_values.max()
+    y_min, y_max = y_values.min(), y_values.max()
+
+    #take width, height, scale - proportion
+    width = x_max - x_min
+    height = y_max - y_min
+    scale = max(width, height)
+
+    #if scale too low - set zeros to not divide by 0
+    if scale < 1e-6:
+        x_norm = np.zeros_like(x_values)
+        y_norm = np.zeros_like(y_values)
+
+    #transform coordinate to 0-1 range
+    else:
+        x_norm = (x_values - x_min) / scale
+        y_norm = (y_values - y_min) / scale
+
+        #set letter on center
+        if width < scale:
+            x_norm += (1.0 - width / scale) / 2.0
+
+        if height < scale:
+            y_norm += (1.0 - height / scale) / 2.0
+
+    #cut over or under
+    x_norm = np.clip(x_norm, 0.0, 1.0)
+    y_norm = np.clip(y_norm, 0.0, 1.0)
+
+    return x_norm, y_norm
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Normalized strokes in range 0-1 in formate [num_points, 6]
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def normalize_strokes (data: StrokeData) -> StrokeArray:
+def normalize_strokes(data: StrokeData) -> StrokeArray:
 
     strokes = data.get("strokes", []) #if not - empty list
     
@@ -78,39 +119,7 @@ def normalize_strokes (data: StrokeData) -> StrokeArray:
             stroke_start_values[i] = 1.0
         previous_pen_down = pen_down
 
-    #~~~~~~~~~~~~~~~~~~~~
-    #Normalize coordinate
-    #~~~~~~~~~~~~~~~~~~~~
-
-    #take borders of letter
-    x_min, x_max = x_values.min(), x_values.max()
-    y_min, y_max = y_values.min(), y_values.max()
-
-    #take width, height, scale - proportion
-    width = x_max - x_min
-    height = y_max - y_min
-    scale = max(width, height)
-
-    #if scale too low - set zeros to not divide by 0
-    if scale < 1e-6:
-        x_norm = np.zeros_like(x_values)
-        y_norm = np.zeros_like(y_values)
-
-    #transform coordinate to 0-1 range
-    else:
-        x_norm = (x_values - x_min) / scale
-        y_norm = (y_values - y_min) / scale 
-
-        #set letter on center
-        if width < scale:
-            x_norm += (1.0 - width / scale) / 2.0
-
-        if height < scale:
-            y_norm += (1.0 - height / scale) / 2.0
-
-    #cut over or under
-    x_norm = np.clip(x_norm, 0.0, 1.0)
-    y_norm = np.clip(y_norm, 0.0, 1.0)
+    x_norm, y_norm = normalize_coordinates(x_values, y_values)
 
     #~~~~~~~~~~~~~~
     #Normalize time

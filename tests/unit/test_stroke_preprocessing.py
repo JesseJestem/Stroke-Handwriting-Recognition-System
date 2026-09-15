@@ -7,6 +7,7 @@ from handwriting.core.exceptions import StrokeDataError
 from handwriting.preprocessing.strokes import (
     distribute_points_between_strokes,
     load_stroke_json,
+    normalize_coordinates,
     normalize_strokes,
     preprocess_stroke_data,
     preprocess_strokes,
@@ -80,7 +81,7 @@ segment_2 = np.array([
 ], dtype=np.float32)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#1 Shape test
+#TESTS
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def test_normalize_strokes_returns_expected_shape():
@@ -92,9 +93,6 @@ def test_normalize_strokes_returns_expected_shape():
     #Assert
     assert result.shape == (3, 6)
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#2 Formate test
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def test_normalize_strokes_returns_float32():
 
@@ -103,9 +101,6 @@ def test_normalize_strokes_returns_float32():
 
     assert result.dtype == np.float32
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#3 Coordinate test
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def test_normalize_strokes_normalizes_coordinates():
 
@@ -120,9 +115,6 @@ def test_normalize_strokes_normalizes_coordinates():
     assert np.all(y >= 0.0)
     assert np.all(y <= 1.0)
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#4 Time test
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def test_normalize_strokes_normalizes_time():
 
@@ -135,9 +127,6 @@ def test_normalize_strokes_normalizes_time():
         [0.0, 0.5, 1.0]
     )
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#5 Stroke start test
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def test_normalize_strokes_detects_stroke_start():
 
@@ -150,9 +139,6 @@ def test_normalize_strokes_detects_stroke_start():
         [1, 0, 0, 0, 1, 0]
     )
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#6 Pressure start test
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def test_normalize_strokes_clips_and_defaults_pressure():
     input_data = data_pressure
@@ -164,9 +150,6 @@ def test_normalize_strokes_clips_and_defaults_pressure():
         [0.0, 0.5, 1.0]
     )
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#7 Empty data test
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def test_normalize_strokes_handles_empty_input():
 
@@ -176,9 +159,6 @@ def test_normalize_strokes_handles_empty_input():
     assert result.shape == (0, 6)
     assert result.dtype == np.float32
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#8 Reasmple points test
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def test_resample_strokes_returns_requested_number_of_points():
 
@@ -187,9 +167,6 @@ def test_resample_strokes_returns_requested_number_of_points():
 
     assert result.shape == (50, 6)
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#9 Split stroke test
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def test_split_strokes_separates_segments():
 
@@ -199,9 +176,6 @@ def test_split_strokes_separates_segments():
     assert len(segments[0]) == 2
     assert len(segments[1]) == 2
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#10 Split one stroke test
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def test_resample_single_stroke_interpolates_points():
 
@@ -232,9 +206,6 @@ def test_resample_single_stroke_interpolates_points():
         [1, 0, 0, 0, 0]
     )
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#11 Split one stroke test
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def test_resample_single_stroke_repeats_single_point():
 
@@ -265,9 +236,6 @@ def test_resample_single_stroke_repeats_single_point():
         [1, 0, 0, 0, 0]
     )
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#12 Distribute points strokes test
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def test_distribute_points_handles_zero_remaining_points():
 
@@ -284,9 +252,6 @@ def test_distribute_points_handles_zero_remaining_points():
     )
     assert separator_points == 2
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#13 Load stroke JSON rises stroke data error for missing file
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def test_load_stroke_json_raises_stroke_data_error_for_missing_file(tmp_path):
     missing_file = tmp_path / 'missing_file.json'
@@ -294,9 +259,6 @@ def test_load_stroke_json_raises_stroke_data_error_for_missing_file(tmp_path):
     with pytest.raises(StrokeDataError):
         load_stroke_json(missing_file)
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#14 Load stroke JSON rises stroke data error for invalid file
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def test_load_stroke_json_raises_stroke_data_error_for_invalid_json(tmp_path):
     invalid_file = tmp_path / 'invalid_file.json'
@@ -309,9 +271,6 @@ def test_load_stroke_json_raises_stroke_data_error_for_invalid_json(tmp_path):
     with pytest.raises(StrokeDataError):
         load_stroke_json(invalid_file)
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#15 Load stroke JSON returns stroke data
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def test_load_stroke_json_returns_stroke_data(tmp_path):
     stroke_file = tmp_path / "stroke.json"
@@ -324,9 +283,6 @@ def test_load_stroke_json_returns_stroke_data(tmp_path):
     result = load_stroke_json(stroke_file)
     assert result["strokes"][0]["x"] == 1
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#16 Preprocess stroke data returns expected shape
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def test_preprocess_stroke_data_returns_expected_shape():
     result = preprocess_stroke_data(
@@ -337,9 +293,6 @@ def test_preprocess_stroke_data_returns_expected_shape():
     assert result.shape == (50, 6)
     assert result.dtype == np.float32
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#17 Preprocess stroke data == preprocess strokes
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def test_preprocess_strokes_matches_preprocess_stroke_data(tmp_path):
     stroke_file = tmp_path / "stroke.json"
@@ -360,3 +313,78 @@ def test_preprocess_strokes_matches_preprocess_stroke_data(tmp_path):
     )
 
     np.testing.assert_allclose(from_file, from_data)
+
+
+def test_normalize_coordinates_preserves_aspect_ratio_and_centers():
+    x_values = np.array(
+        [0.0, 10.0],
+        dtype=np.float32,
+    )
+    y_values = np.array(
+        [0.0, 20.0],
+        dtype=np.float32,
+    )
+
+    x_norm, y_norm = normalize_coordinates(
+        x_values,
+        y_values,
+    )
+
+    np.testing.assert_allclose(
+        x_norm,
+        np.array([0.25, 0.75], dtype=np.float32),
+    )
+    np.testing.assert_allclose(
+        y_norm,
+        np.array([0.0, 1.0], dtype=np.float32),
+    )
+
+
+def test_normalize_coordinates_returns_zeros_for_degenerate_input():
+    x_values = np.array(
+        [5.0, 5.0],
+        dtype=np.float32,
+    )
+
+    y_values = np.array(
+        [10.0, 10.0],
+        dtype=np.float32,
+    )
+
+    x_norm, y_norm = normalize_coordinates(
+        x_values,
+        y_values,
+    )
+
+    np.testing.assert_array_equal(
+        x_norm,
+        np.zeros((2,), dtype=np.float32),
+    )
+    np.testing.assert_array_equal(
+        y_norm,
+        np.zeros((2,), dtype=np.float32),
+    )
+
+def test_normalize_coordinates_centers_shorter_height():
+    x_values = np.array(
+        [0.0, 20.0],
+        dtype=np.float32,
+    )
+    y_values = np.array(
+        [0.0, 10.0],
+        dtype=np.float32,
+    )
+
+    x_norm, y_norm = normalize_coordinates(
+        x_values,
+        y_values,
+    )
+
+    np.testing.assert_allclose(
+        x_norm,
+        np.array([0.0, 1.0], dtype=np.float32),
+    )
+    np.testing.assert_allclose(
+        y_norm,
+        np.array([0.25, 0.75], dtype=np.float32),
+    )
