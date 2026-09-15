@@ -263,7 +263,7 @@ Pointer Events API
 
 ## Stage 3 — Dataset System
 
-* [ ] Split preprocessing into small functions
+* [x] Split preprocessing into small functions
 * [ ] Add input validation
 * [ ] Add feature extraction
 * [ ] Create `DatasetRepository`
