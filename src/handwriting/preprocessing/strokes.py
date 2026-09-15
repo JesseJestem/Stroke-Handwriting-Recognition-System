@@ -71,6 +71,22 @@ def normalize_coordinates(
 
     return x_norm, y_norm
 
+#~~~~~~~~~~~~~~
+#Normalize time
+#~~~~~~~~~~~~~~
+
+def normalize_time(
+    t_values: FloatArray,
+) -> FloatArray:
+    t_min, t_max = t_values.min(), t_values.max()
+
+    # transform time to 0-1 range
+    if t_max - t_min < 1e-6:
+        return np.zeros_like(t_values)
+
+    return (t_values - t_min) / (t_max - t_min)
+
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Normalized strokes in range 0-1 in formate [num_points, 6]
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -119,20 +135,10 @@ def normalize_strokes(data: StrokeData) -> StrokeArray:
             stroke_start_values[i] = 1.0
         previous_pen_down = pen_down
 
+    #coordinate
     x_norm, y_norm = normalize_coordinates(x_values, y_values)
-
-    #~~~~~~~~~~~~~~
-    #Normalize time
-    #~~~~~~~~~~~~~~
-
-    t_min, t_max = t_values.min(), t_values.max()
-
-    #transform time to 0-1 range
-    if t_max - t_min < 1e-6:
-        t_norm = np.zeros_like(t_values)
-    
-    else:
-        t_norm = (t_values - t_min) / (t_max - t_min)
+    #time
+    t_norm = normalize_time(t_values)
 
     #~~~~~~~~~~~~~~
     #Normalize pressure
