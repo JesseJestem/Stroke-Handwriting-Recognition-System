@@ -420,3 +420,19 @@ def test_normalize_time_returns_zeros_for_constant_values():
         t_norm,
         np.array([0.0, 0.0, 0.0], dtype=np.float32),
     )
+
+
+def test_load_stroke_json_rejects_invalid_stroke_structure(tmp_path):
+    invalid_data = {
+        "label": "a",
+    }
+
+    stroke_file = tmp_path / "invalid_data.json"
+
+    stroke_file.write_text(
+        json.dumps(invalid_data),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(StrokeDataError):
+        load_stroke_json(stroke_file)

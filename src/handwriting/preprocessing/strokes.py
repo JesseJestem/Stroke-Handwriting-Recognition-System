@@ -1,11 +1,11 @@
 import json
 from pathlib import Path
-from typing import cast
 
 import numpy as np
 
 from handwriting.core.exceptions import StrokeDataError
 from handwriting.core.types import FloatArray, IntArray, StrokeArray, StrokeData
+from handwriting.data.validation import validate_stroke_data
 
 #~~~~~~~~~~~~~~~~~~
 #Load stroke JSON -> dict
@@ -28,7 +28,7 @@ def load_stroke_json(stroke_path: str | Path) -> StrokeData:
             f"Invalid stroke JSON: {stroke_path}"
         ) from exc
 
-    return cast(StrokeData, data)
+    return validate_stroke_data(data)
 
 #~~~~~~~~~~~~~~~~~~~~
 #Normalize coordinate
