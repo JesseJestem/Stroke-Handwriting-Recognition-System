@@ -265,7 +265,7 @@ Pointer Events API
 
 * [x] Split preprocessing into small functions
 * [x] Add input validation
-* [ ] Add feature extraction
+* [x] Add feature extraction
 * [ ] Create `DatasetRepository`
 * [ ] Create dataset manifests
 * [ ] Add dataset versioning
