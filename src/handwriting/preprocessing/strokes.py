@@ -6,6 +6,7 @@ import numpy as np
 from handwriting.core.exceptions import StrokeDataError
 from handwriting.core.types import FloatArray, IntArray, StrokeArray, StrokeData
 from handwriting.data.validation import validate_stroke_data
+from handwriting.preprocessing.features import extract_stroke_start
 
 #~~~~~~~~~~~~~~~~~~
 #Load stroke JSON -> dict
@@ -124,16 +125,7 @@ def normalize_strokes(data: StrokeData) -> StrokeArray:
     #Add aditional stroke start feature
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    stroke_start_values = np.zeros_like(pen_down_values)
-    previous_pen_down = 0.0
-
-    # Detect the beginning of each stroke
-    # pen_down:    [1, 1, 1, 0, 1, 1]
-    # stroke_start:[1, 0, 0, 0, 1, 0]
-    for i, pen_down in enumerate(pen_down_values):
-        if pen_down == 1.0 and previous_pen_down == 0.0:
-            stroke_start_values[i] = 1.0
-        previous_pen_down = pen_down
+    stroke_start_values = extract_stroke_start(pen_down_values)
 
     #coordinate
     x_norm, y_norm = normalize_coordinates(x_values, y_values)
