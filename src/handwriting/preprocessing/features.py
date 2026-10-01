@@ -18,3 +18,16 @@ def extract_stroke_start(
         previous_pen_down = pen_down
 
     return stroke_start_values
+
+def extract_coordinate_deltas(
+        x_values: FloatArray,
+        y_values: FloatArray,
+) -> tuple[FloatArray, FloatArray]:
+
+    dx = np.zeros_like(x_values)
+    dy = np.zeros_like(y_values)
+
+    dx[1:] = np.diff(x_values)
+    dy[1:] = np.diff(y_values)
+
+    return dx, dy
