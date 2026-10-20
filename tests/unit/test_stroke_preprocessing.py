@@ -4,9 +4,9 @@ import numpy as np
 import pytest
 
 from handwriting.core.exceptions import StrokeDataError
+from handwriting.data.loading import load_stroke_json
 from handwriting.preprocessing.strokes import (
     distribute_points_between_strokes,
-    load_stroke_json,
     normalize_coordinates,
     normalize_strokes,
     normalize_time,
