@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import TypedDict, cast
+from typing import NotRequired, TypedDict, cast
 
 from handwriting.core.exceptions import DatasetManifestError
 from handwriting.core.types import StrokeData
@@ -10,6 +10,7 @@ from handwriting.data.repository import DatasetRepository
 class DatasetManifestEntry(TypedDict):
     path: str
     label: str
+    writer_id: NotRequired[str]
 
 
 class DatasetManifest(TypedDict):
@@ -26,10 +27,16 @@ def create_manifest_entry(
         raise DatasetManifestError("Stroke data must contain a label")
 
     relative_path = stroke_path.relative_to(raw_data_dir)
-    return {
+
+    entry: DatasetManifestEntry = {
         "path": relative_path.as_posix(),
         "label": stroke_data["label"],
     }
+
+    if "writer_id" in stroke_data:
+        entry["writer_id"] = stroke_data["writer_id"]
+
+    return entry
 
 
 def create_dataset_manifest(
@@ -101,6 +108,11 @@ def validate_manifest_entry(
     if not isinstance(entry["label"], str):
         raise DatasetManifestError(
             "Dataset manifest entry 'label' must be a string"
+        )
+
+    if "writer_id" in entry and not isinstance(entry["writer_id"], str):
+        raise DatasetManifestError(
+            "Dataset manifest entry 'writer_id' must be a string"
         )
 
     return cast(DatasetManifestEntry, entry)

@@ -210,3 +210,23 @@ def test_validate_stroke_data_accepts_integer_numeric_values():
     result = validate_stroke_data(data)
 
     assert result == data
+
+
+def test_validate_stroke_data_accepts_writer_id() -> None:
+    data = {
+        "strokes": [],
+        "writer_id": "writer_001",
+    }
+
+    result = validate_stroke_data(data)
+
+    assert result["writer_id"] == "writer_001"
+
+def test_validate_stroke_data_rejects_invalid_writer_id() -> None:
+    data = {
+        "strokes": [],
+        "writer_id": 123,
+    }
+
+    with pytest.raises(StrokeDataError):
+        validate_stroke_data(data)

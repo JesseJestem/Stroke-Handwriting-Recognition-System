@@ -51,5 +51,9 @@ def validate_stroke_data(data: object) -> StrokeData:
     if "canvas_height" in data:
         if isinstance(data["canvas_height"], bool) or not isinstance(data["canvas_height"], int):
             raise StrokeDataError("'canvas_height' must be an integer")
+    if "writer_id" in data and not isinstance(data["writer_id"], str):
+        raise StrokeDataError(
+            "'writer_id' must be a string"
+        )
 
     return cast(StrokeData, data)

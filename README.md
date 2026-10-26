@@ -270,7 +270,7 @@ Pointer Events API
 * [x] Create dataset manifests
 * [x] Add dataset versioning
 * [x] Add preprocessing versioning
-* [ ] Add `writer_id`
+* [x] Add `writer_id`
 * [ ] Add `session_id`
 * [ ] Add `source_dataset`
 * [ ] Add writer-aware splitting
