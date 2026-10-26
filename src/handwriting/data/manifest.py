@@ -13,6 +13,7 @@ class DatasetManifestEntry(TypedDict):
 
 
 class DatasetManifest(TypedDict):
+    dataset_version: str
     samples: list[DatasetManifestEntry]
 
 
@@ -33,7 +34,13 @@ def create_manifest_entry(
 
 def create_dataset_manifest(
     repository: DatasetRepository,
+    dataset_version: str,
 ) -> DatasetManifest:
+    if not dataset_version:
+        raise DatasetManifestError(
+            "Dataset versioning must not be empty"
+        )
+
     entries: list[DatasetManifestEntry] = []
 
     for stroke_path in repository.list_stroke_files():
@@ -48,6 +55,7 @@ def create_dataset_manifest(
         entries.append(entry)
 
     return {
+        "dataset_version": dataset_version,
         "samples": entries,
     }
 
@@ -109,6 +117,21 @@ def load_dataset_manifest(
     if not isinstance(data, dict):
         raise DatasetManifestError(
             "Dataset manifest must be a dictionary"
+        )
+
+    if "dataset_version" not in data:
+        raise DatasetManifestError(
+            "Dataset manifest must contain 'dataset_version'"
+        )
+
+    if not isinstance(data["dataset_version"], str):
+        raise DatasetManifestError(
+            "'dataset_version' must be a string"
+        )
+
+    if not data["dataset_version"]:
+        raise DatasetManifestError(
+            "'dataset_version' must not be empty"
         )
 
     if "samples" not in data:
