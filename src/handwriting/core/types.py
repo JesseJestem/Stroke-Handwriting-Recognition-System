@@ -22,3 +22,4 @@ class StrokeData(TypedDict):
     canvas_height: NotRequired[int]
     writer_id: NotRequired[str]
     session_id: NotRequired[str]
+    source_dataset: NotRequired[str]
