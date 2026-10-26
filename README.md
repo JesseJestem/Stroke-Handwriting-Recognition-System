@@ -268,7 +268,7 @@ Pointer Events API
 * [x] Add feature extraction
 * [x] Create `DatasetRepository`
 * [x] Create dataset manifests
-* [ ] Add dataset versioning
+* [x] Add dataset versioning
 * [ ] Add preprocessing versioning
 * [ ] Add `writer_id`
 * [ ] Add `session_id`
