@@ -55,5 +55,9 @@ def validate_stroke_data(data: object) -> StrokeData:
         raise StrokeDataError(
             "'writer_id' must be a string"
         )
+    if "session_id" in data and not isinstance(data["session_id"], str):
+        raise StrokeDataError(
+            "'session_id' must be a string"
+        )
 
     return cast(StrokeData, data)
