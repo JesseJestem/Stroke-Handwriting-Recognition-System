@@ -38,7 +38,7 @@ def create_dataset_manifest(
 ) -> DatasetManifest:
     if not dataset_version:
         raise DatasetManifestError(
-            "Dataset versioning must not be empty"
+            "Dataset version must not be empty"
         )
 
     entries: list[DatasetManifestEntry] = []
