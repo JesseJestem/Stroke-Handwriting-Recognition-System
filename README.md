@@ -269,7 +269,7 @@ Pointer Events API
 * [x] Create `DatasetRepository`
 * [x] Create dataset manifests
 * [x] Add dataset versioning
-* [ ] Add preprocessing versioning
+* [x] Add preprocessing versioning
 * [ ] Add `writer_id`
 * [ ] Add `session_id`
 * [ ] Add `source_dataset`
