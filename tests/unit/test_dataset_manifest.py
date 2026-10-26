@@ -98,9 +98,13 @@ def test_create_dataset_manifest_builds_entries_from_repository(
 
     repository = DatasetRepository(tmp_path)
 
-    result = create_dataset_manifest(repository)
+    result = create_dataset_manifest(
+        repository,
+        dataset_version="v1"
+    )
 
     assert result == {
+        "dataset_version": "v1",
         "samples": [
             {
                 "path": "strokes/lower_a/a_1.json",
@@ -112,6 +116,41 @@ def test_create_dataset_manifest_builds_entries_from_repository(
             },
         ]
     }
+
+
+def test_create_dataset_manifest_empty_version_raises_error(
+    tmp_path: Path,
+) -> None:
+    repository = DatasetRepository(tmp_path)
+
+    with pytest.raises(DatasetManifestError):
+        create_dataset_manifest(
+            repository,
+            dataset_version="",
+        )
+
+
+@pytest.mark.parametrize(
+    "manifest",
+    [
+        {"samples": []},
+        {"dataset_version": 1, "samples": []},
+        {"dataset_version": "", "samples": []},
+    ],
+)
+def test_load_dataset_manifest_rejects_invalid_dataset_version(
+    tmp_path: Path,
+    manifest: object,
+) -> None:
+    manifest_path = tmp_path / "manifest.json"
+
+    manifest_path.write_text(
+        json.dumps(manifest),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(DatasetManifestError):
+        load_dataset_manifest(manifest_path)
 
 
 def test_save_dataset_manifest_writes_json_file(
@@ -147,6 +186,7 @@ def test_load_dataset_manifest_returns_saved_manifest(
     tmp_path: Path,
 ) -> None:
     manifest = {
+        "dataset_version": "v1",
         "samples": [
             {
                 "path": "strokes/lower_a/a_1.json",
