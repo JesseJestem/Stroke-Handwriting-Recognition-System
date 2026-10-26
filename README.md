@@ -271,7 +271,7 @@ Pointer Events API
 * [x] Add dataset versioning
 * [x] Add preprocessing versioning
 * [x] Add `writer_id`
-* [ ] Add `session_id`
+* [x] Add `session_id`
 * [ ] Add `source_dataset`
 * [ ] Add writer-aware splitting
 * [ ] Create native dataset adapter

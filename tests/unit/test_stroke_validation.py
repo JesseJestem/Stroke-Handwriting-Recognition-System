@@ -230,3 +230,24 @@ def test_validate_stroke_data_rejects_invalid_writer_id() -> None:
 
     with pytest.raises(StrokeDataError):
         validate_stroke_data(data)
+
+
+def test_validate_stroke_data_accepts_session_id() -> None:
+    data = {
+        "strokes": [],
+        "session_id": "session_001",
+    }
+
+    result = validate_stroke_data(data)
+
+    assert result["session_id"] == "session_001"
+
+
+def test_validate_stroke_data_rejects_invalid_session_id() -> None:
+    data = {
+        "strokes": [],
+        "session_id": 123,
+    }
+
+    with pytest.raises(StrokeDataError):
+        validate_stroke_data(data)
