@@ -313,6 +313,11 @@ def test_load_dataset_manifest_samples_non_list_raises_error(
             "label": "a",
             "session_id": 123,
         },
+        {
+            "path": "strokes/a.json",
+            "label": "a",
+            "source_dataset": 123,
+        },
     ],
 )
 def test_validate_manifest_entry_rejects_invalid_entries(
@@ -419,6 +424,73 @@ def test_create_dataset_manifest_preserves_session_id(
                 "path": "strokes/lower_a/a_1.json",
                 "label": "a",
                 "session_id": "session_001",
+            }
+        ],
+    }
+
+
+def test_create_manifest_entry_includes_source_dataset(
+    tmp_path: Path,
+) -> None:
+    stroke_path = (
+        tmp_path
+        / "strokes"
+        / "lower_a"
+        / "sample.json"
+    )
+
+    stroke_data: StrokeData = {
+        "strokes": [],
+        "label": "a",
+        "source_dataset": "native",
+    }
+
+    result = create_manifest_entry(
+        stroke_path=stroke_path,
+        raw_data_dir=tmp_path,
+        stroke_data=stroke_data,
+    )
+
+    assert result == {
+        "path": "strokes/lower_a/sample.json",
+        "label": "a",
+        "source_dataset": "native",
+    }
+
+
+def test_create_dataset_manifest_preserves_source_dataset(
+    tmp_path: Path,
+) -> None:
+    stroke_dir = tmp_path / "strokes" / "lower_a"
+    stroke_dir.mkdir(parents=True)
+
+    stroke_file = stroke_dir / "a_1.json"
+
+    stroke_file.write_text(
+        """
+        {
+            "strokes": [],
+            "label": "a",
+            "source_dataset": "native"
+        }
+        """,
+        encoding="utf-8",
+    )
+
+    repository = DatasetRepository(tmp_path)
+
+    result = create_dataset_manifest(
+        repository,
+        dataset_version="v1",
+    )
+
+    assert result == {
+        "dataset_version": "v1",
+        "samples": [
+            {
+                "path": "strokes/lower_a/a_1.json",
+                "label": "a",
+                "source_dataset": "native",
             }
         ],
     }

@@ -272,7 +272,7 @@ Pointer Events API
 * [x] Add preprocessing versioning
 * [x] Add `writer_id`
 * [x] Add `session_id`
-* [ ] Add `source_dataset`
+* [x] Add `source_dataset`
 * [ ] Add writer-aware splitting
 * [ ] Create native dataset adapter
 * [ ] Create UJI adapter

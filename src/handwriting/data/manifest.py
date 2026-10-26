@@ -12,6 +12,7 @@ class DatasetManifestEntry(TypedDict):
     label: str
     writer_id: NotRequired[str]
     session_id: NotRequired[str]
+    source_dataset: NotRequired[str]
 
 
 class DatasetManifest(TypedDict):
@@ -38,6 +39,8 @@ def create_manifest_entry(
         entry["writer_id"] = stroke_data["writer_id"]
     if "session_id" in stroke_data:
         entry["session_id"] = stroke_data["session_id"]
+    if "source_dataset" in stroke_data:
+        entry["source_dataset"] = stroke_data["source_dataset"]
 
     return entry
 
@@ -121,6 +124,11 @@ def validate_manifest_entry(
     if "session_id" in entry and not isinstance(entry["session_id"], str):
         raise DatasetManifestError(
             "Dataset manifest entry 'session_id' must be a string"
+        )
+
+    if "source_dataset" in entry and not isinstance(entry["source_dataset"],str,):
+        raise DatasetManifestError(
+            "Dataset manifest entry 'source_dataset' must be a string"
         )
 
     return cast(DatasetManifestEntry, entry)

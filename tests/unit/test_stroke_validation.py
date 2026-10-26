@@ -251,3 +251,24 @@ def test_validate_stroke_data_rejects_invalid_session_id() -> None:
 
     with pytest.raises(StrokeDataError):
         validate_stroke_data(data)
+
+
+def test_validate_stroke_data_accepts_source_dataset() -> None:
+    data = {
+        "strokes": [],
+        "source_dataset": "native",
+    }
+
+    result = validate_stroke_data(data)
+
+    assert result["source_dataset"] == "native"
+
+
+def test_validate_stroke_data_rejects_invalid_source_dataset() -> None:
+    data = {
+        "strokes": [],
+        "source_dataset": 123,
+    }
+
+    with pytest.raises(StrokeDataError):
+        validate_stroke_data(data)
