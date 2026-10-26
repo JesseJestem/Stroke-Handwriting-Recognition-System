@@ -118,6 +118,44 @@ def test_create_dataset_manifest_builds_entries_from_repository(
     }
 
 
+def test_create_dataset_manifest_preserves_writer_id(
+    tmp_path: Path,
+) -> None:
+    stroke_dir = tmp_path / "strokes" / "lower_a"
+    stroke_dir.mkdir(parents=True)
+
+    stroke_file = stroke_dir / "a_1.json"
+
+    stroke_file.write_text(
+        """
+        {
+            "strokes": [],
+            "label": "a",
+            "writer_id": "writer_001"
+        }
+        """,
+        encoding="utf-8",
+    )
+
+    repository = DatasetRepository(tmp_path)
+
+    result = create_dataset_manifest(
+        repository,
+        dataset_version="v1",
+    )
+
+    assert result == {
+        "dataset_version": "v1",
+        "samples": [
+            {
+                "path": "strokes/lower_a/a_1.json",
+                "label": "a",
+                "writer_id": "writer_001",
+            }
+        ],
+    }
+
+
 def test_create_dataset_manifest_empty_version_raises_error(
     tmp_path: Path,
 ) -> None:
@@ -265,6 +303,11 @@ def test_load_dataset_manifest_samples_non_list_raises_error(
         {"path": 123, "label": "a"},
         {"path": "strokes/a.json"},
         {"path": "strokes/a.json", "label": 123},
+        {
+            "path": "strokes/a.json",
+            "label": "a",
+            "writer_id": 123,
+        },
     ],
 )
 def test_validate_manifest_entry_rejects_invalid_entries(
@@ -283,3 +326,27 @@ def test_validate_manifest_entry_returns_valid_entry() -> None:
     result = validate_manifest_entry(entry)
 
     assert result == entry
+
+
+def test_create_manifest_entry_includes_writer_id(
+    tmp_path: Path,
+) -> None:
+    stroke_path = tmp_path / "strokes" / "lower_a" / "sample.json"
+
+    stroke_data: StrokeData = {
+        "strokes": [],
+        "label": "a",
+        "writer_id": "writer_001",
+    }
+
+    result = create_manifest_entry(
+        stroke_path=stroke_path,
+        raw_data_dir=tmp_path,
+        stroke_data=stroke_data,
+    )
+
+    assert result == {
+        "path": "strokes/lower_a/sample.json",
+        "label": "a",
+        "writer_id": "writer_001",
+    }
